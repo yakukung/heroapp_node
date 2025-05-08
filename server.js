@@ -42,3 +42,8 @@ Object.keys(ips).forEach(function (_interface) {
 app.listen(port, () => {
   console.log(`API listening at http://${ip}:${port}`);
 });
+
+process.on('SIGINT', async () => {
+  await prisma.$disconnect();
+  process.exit(0);
+});
