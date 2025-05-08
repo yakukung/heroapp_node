@@ -1,12 +1,10 @@
-require('dotenv').config();
 const express = require("express");
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient({
-  datasources: { db: { url: process.env.DATABASE_URL } },
-  log: ['error']
-});
+
+// แก้ไขปัญหา DATABASE_URL undefined
+const prisma = new PrismaClient();
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 const os = require("os");
 let ip = "0.0.0.0";
 
