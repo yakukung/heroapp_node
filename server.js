@@ -1,4 +1,5 @@
 const express = require("express");
+require('dotenv').config();  // เพิ่มบรรทัดนี้
 const { PrismaClient } = require('@prisma/client');
 
 // แก้ไขปัญหา DATABASE_URL undefined
