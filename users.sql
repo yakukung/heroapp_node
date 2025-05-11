@@ -39,8 +39,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`uid`, `username`, `email`, `password`) VALUES
-(1, 'yakukung', 'yakukung@gmail.com', '1234'),
-(2, 'test1', 'test1@gmail.com', '55');
+(1, 'yakukung', 'yakukung@gmail.com', '12345678'),
+(2, 'test1', 'test1@gmail.com', '55555555');
 
 --
 -- Indexes for dumped tables
