@@ -65,7 +65,7 @@ router.post("/login", async (req, res) => {
     res.json({ 
       status: "ok",
       token: token,
-      userId: user.id,
+      uid: user.uid,
       username: user.username,
       message: "เข้าสู่ระบบสำเร็จ"
     });
@@ -75,15 +75,82 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ 
       error: `เกิดข้อผิดพลาดในการเชื่อมต่อ: ${error.message}`
     });
-  }
+  }router.post("/register", async (req, res) => {
+    const { username, email, password } = req.body;
+  
+    // เช็คข้อมูลครบถ้วน
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: "กรุณากรอกข้อมูลให้ครบถ้วน" });
+    }
+  
+    // เช็ครูปแบบอีเมล
+    if (!isEmail(email)) {
+      return res.status(400).json({ error: "รูปแบบอีเมลไม่ถูกต้อง" });
+    }
+  
+    // เช็คความยาวรหัสผ่าน
+    if (password.length < 8) {
+      return res.status(400).json({ error: "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร" });
+    }
+  
+    // เช็ค username ซ้ำ
+    const existUsername = await prisma.user.findUnique({ where: { username } });
+    if (existUsername) {
+      return res.status(400).json({ error: "username นี้ถูกใช้ไปแล้ว" });
+    }
+  
+    // เช็ค email ซ้ำ
+    const existEmail = await prisma.user.findUnique({ where: { email } });
+    if (existEmail) {
+      return res.status(400).json({ error: "email นี้ถูกใช้ไปแล้ว" });
+    }
+  
+    // เช็ค password ตามเงื่อนไขเพิ่มเติม (ถ้ามี)
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return res.status(400).json({ error: passwordValidation.message });
+    }
+  
+    try {
+      // เข้ารหัสรหัสผ่านก่อนบันทึก
+      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+      const user = await prisma.user.create({
+        data: {
+          username,
+          email,
+          password: hashedPassword
+        }
+      });
+      res.json({ status: "ok", userId: user.id, username: user.username });
+    } catch (error) {
+      res.status(500).json({ error: `เกิดข้อผิดพลาด: ${error.message}` });
+    }
+  });
 });
 
-// สมัครสมาชิก
 router.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
 
   if (!username || !email || !password) {
     return res.status(400).json({ error: "กรุณากรอกข้อมูลให้ครบถ้วน" });
+  }
+
+  if (!isEmail(email)) {
+    return res.status(400).json({ error: "รูปแบบอีเมลไม่ถูกต้อง" });
+  }
+
+  if (password.length < 8) {
+    return res.status(400).json({ error: "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร" });
+  }
+
+  const existUsername = await prisma.user.findUnique({ where: { username } });
+  if (existUsername) {
+    return res.status(400).json({ error: "username นี้ถูกใช้ไปแล้ว" });
+  }
+
+  const existEmail = await prisma.user.findUnique({ where: { email } });
+  if (existEmail) {
+    return res.status(400).json({ error: "email นี้ถูกใช้ไปแล้ว" });
   }
 
   const passwordValidation = validatePassword(password);
@@ -92,7 +159,6 @@ router.post("/register", async (req, res) => {
   }
 
   try {
-    // เข้ารหัสรหัสผ่านก่อนบันทึก
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
     const user = await prisma.user.create({
       data: {

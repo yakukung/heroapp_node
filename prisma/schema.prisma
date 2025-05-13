@@ -9,10 +9,11 @@ datasource db {
 }
 
 model User {
-  id       Int    @id @default(autoincrement()) @map("uid")
-  username String @unique(map: "unique_username") @db.VarChar(20)
-  email    String @unique(map: "unique_email") @db.VarChar(30)
-  password String @db.VarChar(100)
+  uid           Int     @id @default(autoincrement()) @map("uid")
+  username      String  @unique(map: "unique_username") @db.VarChar(20)
+  email         String  @unique(map: "unique_email") @db.VarChar(30)
+  password      String  @db.VarChar(100)
+  profile_image String? @map("profile_image") @db.VarChar(200)
 
   @@map("users")
 }
