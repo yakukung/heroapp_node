@@ -9,23 +9,69 @@ datasource db {
 }
 
 model User {
-  uid           Int     @id @default(autoincrement()) @map("uid")
-  username      String  @unique(map: "unique_username") @db.VarChar(20)
-  email         String  @unique(map: "unique_email") @db.VarChar(30)
-  password      String  @db.VarChar(100)
-  profile_image String? @map("profile_image") @db.VarChar(200)
+  uid              Int              @id @default(autoincrement()) @map("uid")
+  username         String           @unique(map: "unique_username") @db.VarChar(20)
+  email            String           @unique(map: "unique_email") @db.VarChar(30)
+  password         String           @db.VarChar(100)
+  profile_image    String?          @map("profile_image") @db.VarChar(200)
+  type             Int              @default(0) @db.TinyInt
+  login_history    LoginHistory[]
+  user_favorites   UserFavorite[]
+  purchase_history PurchaseHistory[]
+  products         Product[]
 
   @@map("users")
 }
 
 model Product {
-  id         Int     @id @default(autoincrement())
-  imageUrl   String  @map("image_url")
-  title      String
-  author     String
-  rating     Float
-  price      String
-  isFavorite Boolean @map("is_favorite")
+  id        Int              @id @default(autoincrement())
+  title     String?          @db.VarChar(191)
+  authorId  Int
+  rating    Float?           @db.Double
+  price     Float?           @db.Double
+  imageUrl String?           @db.VarChar(191)
+  author    User             @relation(fields: [authorId], references: [uid])
+  user_favorites UserFavorite[]
+  purchase_history PurchaseHistory[]
 
-  @@map("products")
+  @@map("products") 
+}
+
+model LoginHistory {
+  log_id     Int       @id @default(autoincrement())
+  uid        Int
+  login_time DateTime? @default(now())
+  ip_address String?   @db.VarChar(45)
+  user_agent String?   @db.Text
+  user       User      @relation(fields: [uid], references: [uid], onDelete: Cascade)
+
+  @@index([uid])
+  @@map("login_history")
+}
+
+model UserFavorite {
+  favorite_id Int       @id @default(autoincrement())
+  uid         Int
+  product_id  Int
+  added_date  DateTime? @default(now())
+  user        User      @relation(fields: [uid], references: [uid], onDelete: Cascade)
+  product     Product   @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@unique([uid, product_id], map: "user_product_unique")
+  @@index([product_id])
+  @@map("user_favorites")
+}
+
+model PurchaseHistory {
+  purchase_id Int       @id @default(autoincrement())
+  uid         Int
+  product_id  Int
+  purchase_date DateTime? @default(now())
+  total_price Float?    @db.Double
+  user        User      @relation(fields: [uid], references: [uid], onDelete: Cascade)
+  product     Product   @relation(fields: [product_id], references: [id], onDelete: Restrict)
+
+  @@index([uid])
+  @@index([product_id])
+  @@map("purchase_history")
 }
